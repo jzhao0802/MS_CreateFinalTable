@@ -1,12 +1,14 @@
 rm(list=ls())
 library(dplyr)
 library(plyr)
-ENetModelDir <- "F:\\Jie\\MS\\02_Code\\MS_InitModel\\Results\\2016-07-12 14.54.21\\"
-subVarsENetModelDir <- "F:\\Jie\\MS\\02_Code\\MS_InitModel\\Results\\2016-07-14 07.17.09\\"
+ENetModelDir <- 
+  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 12.30.14/"
+subVarsENetModelDir <- 
+  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 15.37.41/"
+GlmModelDir <- 
+  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 17.39.48/"
 
-GlmModelDir <- "F:\\Jie\\MS\\02_Code\\MS_NonRegularisedGLM\\Results\\2016-07-14 11.15.01\\"
-
-varDescDir <- "F:\\Jie\\MS\\01_Data\\ModelData\\data4Model\\"
+varDescDir <- "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/"
 varDescFile <- "lookup_20160714.csv"
 
 outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
@@ -149,9 +151,9 @@ generateTables <- function(coh, iRepeat){
     
     # avgRank <- cbind(vars=rownames(avgRank), avgRank)
     avgCoefRank <- cbind(score=avgRank, Coef=avgCoef[match(rownames(avgRank), rownames(avgCoef)),])
-    avgCoefRank <- avgCoefRank[order(avgCoefRank$x),]
+    avgCoefRank <- round(avgCoefRank[order(avgCoefRank$x),], 3)
     rank <- 1:nrow(avgCoefRank)
-    OR <- exp(avgCoefRank$Coef)
+    OR <- round(exp(avgCoefRank$Coef),3)
     desc <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
     coefAllFoldAlpha <- coefAllFoldAlpha[match(rownames(avgRank), rownames(coefAllFoldAlpha)), ]
     n.retained <-apply(apply(coefAllFoldAlpha, 2, function(x)x!=0), 1, sum)
@@ -163,11 +165,13 @@ generateTables <- function(coh, iRepeat){
     
     
     tb2 <- tb2[1:10, c('Rank', 'Desc', 'Score', 'n_retained', 'Coef', 'OR')]
+    colnames(tb2) <- c('Rank', 'Variable Description', 'Score', 
+                       'Number of Times Retained', 'Average Coefficient', 'Average Odds Ratio')
     
     write.table(tb2
                 , paste0(resultCohDir, 'Table2_', iOutcome, '.csv')
                 , sep=','
-                , row.names = T
+                , col.names=NA
                 )
     
     #   3.	Table type 3: Odds ratio for unconstrained LR based on most important ~10 variables
@@ -195,6 +199,15 @@ generateTables <- function(coh, iRepeat){
                       , OR_2.5=coefInf_GLM$`odds_2.5%`
                       , OR_97.5=coefInf_GLM$`odds_97.5%`
                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
+    tb3$Pvalue[tb3$Pvalue == 0] = "<0.001"
+    colnames(tb3) <- c(
+      "Variable Name",
+      "Variable Description",
+      "Odds Ratio",
+      "Odds Ratio 2.5%",
+      "Odds Ratio 97.5%",
+      "P-Value"
+    )
     
     write.table(tb3
                 , paste0(resultCohDir, 'Table3_', iOutcome, '.csv')
