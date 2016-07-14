@@ -106,8 +106,6 @@ generateTables <- function(coh, iRepeat){
   for(iOutcome in outcomeList){
     cat(iOutcome, '\n\n')
     outcomeDir <- paste0(cohDir, iOutcome, '\\')
-    # 1. Table type 1:
-    
     
     # 2.	Table type 2: Variable importance for full EN model based on ~80 variables (sorted by descending variable importance)
     #   a.	Note there are separate tables for each outcome i.e. Tables 2A-2F.
@@ -141,6 +139,7 @@ generateTables <- function(coh, iRepeat){
     
     # avgRank <- cbind(vars=rownames(avgRank), avgRank)
     avgCoefRank <- cbind(score=avgRank, Coef=avgCoef[match(rownames(avgRank), rownames(avgCoef)),])
+    avgCoefRank <- avgCoefRank[order(avgCoefRank$x),]
     rank <- 1:nrow(avgCoefRank)
     OR <- exp(avgCoefRank$Coef)
     desc <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
@@ -200,7 +199,9 @@ generateTables <- function(coh, iRepeat){
 
 
 for(iRepeat in 1:n.repeat){
+  cat(iRepeat, '\n\n')
   for(coh in cohList){
+    cat(coh, '\n\n')
     generateTables(coh, iRepeat)  
   }
   
