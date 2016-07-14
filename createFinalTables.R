@@ -23,6 +23,30 @@ dir.create(resultDir, showWarnings = TRUE, recursive = TRUE, mode = "0777")
 
 
 
+# calculate the acu confidence interval using formula
+# SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- (AUC)^2 )+(N_2-1)(Q_2-(AUC)^2) )/(N_1 N_2 ))
+getAucCi <- function(outcomeName, dir, resp, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
+{
+  resp <- read.table(paste0(dir, '\\', outcomeName, '\\Cmp_data_for_model.csv')
+                     , sep=','
+                     , header = T)[, "y"]
+  n.pos <- sum(resp)
+  n.neg <- sum(1-resp)
+  if(dir==cohDir){
+    auc <- EnetTestAuc[EnetTestAuc$Outcome==outcomeName, 'AUC on test']
+    
+  }else if(dir == subVarsCohDir){
+    auc <- subVarsEnetTestAuc[subVarsEnetTestAuc$Outcome==outcomeName, 'AUC on test']
+  }
+  q1 <- auc/(2-auc)
+  q2 <- (2*auc^2)/(1+auc)
+  
+  SE <- sqrt((auc*(1-auc)+(n.pos-1)*(q1-auc^2)+(n.neg-1)*(q2-auc^2))/(n.pos*n.neg))
+  
+  aucCiDiff <- 1.96*SE
+  return(aucCiDiff)
+}
+
 generateTables <- function(coh, iRepeat){
   #   1.	Table type 1: AUC by model type 
   #   a.	Columns:
@@ -66,30 +90,15 @@ generateTables <- function(coh, iRepeat){
   }), rbind)
   
   
-  # calculate the acu confidence interval using formula
-  # SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- 〖AUC〗^2 )+(N_2-1)(Q_2-〖 AUC〗^2) )/(N_1 N_2 ))
-  getAucCi <- function(iOutcome, dir){
-    resp <- read.table(paste0(dir, '\\', iOutcome, '\\Cmp_data_for_model.csv')
-                       , sep=','
-                       , header = T)[, "y"]
-    n.pos <- sum(resp)
-    n.neg <- sum(1-resp)
-    if(dir==cohDir){
-      auc <- EnetTestAuc[EnetTestAuc$Outcome==iOutcome, 'AUC on test']
-      
-    }else if(dir == subVarsCohDir){
-      auc <- subVarsEnetTestAuc[subVarsEnetTestAuc$Outcome==iOutcome, 'AUC on test']
-    }
-    q1 <- auc/(2-auc)
-    q2 <- (2*auc^2)/(1+auc)
-    
-    SE <- sqrt((auc*(1-auc)+(n.pos-1)*(q1-auc^2)+(n.neg-1)*(q2-auc^2))/(n.pos*n.neg))
-    
-    aucCiDiff <- 1.96*SE
-    return(aucCiDiff)
-  }
-  EnetAucCi <- unlist(lapply(outcomeList, getAucCi, cohDir))
-  subVarsEnetAucCi <- unlist(lapply(outcomeList, getAucCi, subVarsCohDir))
+  
+  EnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
+                             dir=cohDir, resp=resp, cohDir=cohDir, 
+                             EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir, 
+                             subVarsEnetTestAuc=subVarsEnetTestAuc))
+  subVarsEnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
+                                    dir=subVarsCohDir, resp=resp, cohDir=cohDir, 
+                                    EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir,
+                                    subVarsEnetTestAuc=subVarsEnetTestAuc))
   GlmAucCi <- (testAuc_glm[3]-testAuc_glm[1])/2
   
   tb1 <- data.frame(Cohort=EnetTestAuc$Cohort
