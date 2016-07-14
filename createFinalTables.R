@@ -1,9 +1,10 @@
+rm(list=ls())
 library(dplyr)
 library(plyr)
 ENetModelDir <- "F:\\Jie\\MS\\02_Code\\MS_InitModel\\Results\\2016-07-12 14.54.21\\"
 subVarsENetModelDir <- "F:\\Jie\\MS\\02_Code\\MS_InitModel\\Results\\2016-07-14 07.17.09\\"
 
-GlmModelDir <- "F:\\Jie\\MS\\02_Code\\MS_NonRegularisedGLM\\Results\\2016-07-14 06.10.58\\"
+GlmModelDir <- "F:\\Jie\\MS\\02_Code\\MS_NonRegularisedGLM\\Results\\2016-07-14 11.15.01\\"
 
 varDescDir <- "F:\\Jie\\MS\\01_Data\\ModelData\\data4Model\\"
 varDescFile <- "lookup_20160714.csv"
@@ -143,6 +144,7 @@ generateTables <- function(coh, iRepeat){
     rank <- 1:nrow(avgCoefRank)
     OR <- exp(avgCoefRank$Coef)
     desc <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
+    coefAllFoldAlpha <- coefAllFoldAlpha[match(rownames(avgRank), rownames(coefAllFoldAlpha)), ]
     n.retained <-apply(apply(coefAllFoldAlpha, 2, function(x)x!=0), 1, sum)
     n.retained <- paste0(n.retained, '/', ncol(coefAllFoldAlpha))
     
