@@ -199,7 +199,12 @@ generateTables <- function(coh, iRepeat){
 }
 
 
-
+for(iRepeat in 1:n.repeat){
+  for(coh in cohList){
+    generateTables(coh, iRepeat)  
+  }
+  
+}
 
 
 
