@@ -1,6 +1,6 @@
 library(dplyr)
 ENetModelDir <- "F:\\Jie\\MS\\02_Code\\MS_InitModel\\Results\\2016-07-12 14.54.21\\"
-GlmModelDir <- "F:\\Jie\\MS\\02_Code\\MS_NonRegularisedGLM\\Results\\2016-07-14 03.08.07\\"
+GlmModelDir <- "F:\\Jie\\MS\\02_Code\\MS_NonRegularisedGLM\\Results\\2016-07-14 06.10.58\\"
 
 varDescDir <- "F:\\Jie\\MS\\01_Data\\ModelData\\data4Model\\"
 varDescFile <- "lookup_20160714.csv"
@@ -98,6 +98,37 @@ generateTables <- function(coh, iRepeat){
                 , sep=','
                 , row.names = T
                 )
+    
+    #   3.	Table type 3: Odds ratio for unconstrained LR based on most important ~10 variables
+    #     a.	One table for each outcome e.g. Table 3A-3F.
+    #     b.	Columns:
+    #       i.	Variable description 
+    #     ii.	Odds ratio 
+    #     iii.	95% CI for odds ratio 
+    #     iv.	P-value 
+    cohDir_glm <- paste0(GlmModelDir, coh, '\\', iOutcome, '\\')
+    coefInf_GLM <- read.table(paste0(cohDir_glm, 'coef_info.csv')
+                              , sep=','
+                              , header = T
+                              , stringsAsFactors = F
+                              , check.names =F)[-1, ]
+    
+    desc <- varDesc[match(coefInf_GLM[, 1], varDesc[, 1]), 2]
+    
+    # orDiff <- coefInf_GLM[, grepl("odds_97.5", names(coefInf_GLM))]-coefInf_GLM[, grepl("odds_2.5", names(coefInf_GLM))]
+    
+    # orInf <- paste0(coefInf_GLM[, 'odds'], "+/-", orDiff/2)
+    tb3 <- data.frame(Variable=coefInf_GLM[, 1]
+                      , Desc=desc
+                      , OR=coefInf_GLM$odds
+                      , OR_2.5=coefInf_GLM$`odds_2.5%`
+                      , OR_97.5=coefInf_GLM$`odds_97.5%`
+                      , Pvalue=coefInf_GLM$`Pr(>|z|)`)
+    
+    write.table(tb3
+                , paste0(resultCohDir, 'Table3_', iOutcome, '.csv')
+                , sep=','
+                , row.names=F)
     
   }  
   
