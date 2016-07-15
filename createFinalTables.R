@@ -36,7 +36,7 @@ getAucCi <- function(outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVa
   n.neg <- sum(1-resp)
   if(dir==cohDir){
     auc <- EnetTestAuc[EnetTestAuc$Outcome==outcomeName, 'AUC on test']
-    
+  
   }else if(dir == subVarsCohDir){
     auc <- subVarsEnetTestAuc[subVarsEnetTestAuc$Outcome==outcomeName, 'AUC on test']
   }
@@ -47,6 +47,36 @@ getAucCi <- function(outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVa
   
   aucCiDiff <- 1.96*SE
   return(aucCiDiff)
+}
+
+getQuintile <- function(outcomeName, dir, coh, inFile, n.bkt){
+  subDir <- paste0(dir, outcomeName, '\\')
+  predLab <- read.table(paste0(subDir, coh, inFile)
+                        , sep=','
+                        , header = T
+                        , stringsAsFactors = F)[, -1] 
+  # breaks <- seq(0, 1, 1/n.bkt)
+  breaks <- quantile(predLab[, 1], probs=seq(0,1, by=1/n.bkt), na.rm=TRUE)
+  bucket <- cut(predLab[, 1], breaks=breaks, include.lowest=F,right=T)
+  predLabBkt <-cbind(bucket, predLab)
+  names(predLabBkt) <- c("Bucket", 'Prediction', 'Label')
+  quintile <- predLabBkt %>%
+    group_by(Bucket) %>%
+    {
+      detach("package:plyr", character.only = T)
+      library('dplyr')
+      .
+    } %>%
+    summarize_each(., funs(getPosRate(.)), one_of("Label"))
+  bktLevels <- sort(levels(bucket))
+  quintileAllBkt <- cbind(bktLevels, quintile[match(bktLevels, quintile$Bucket), -1])
+  library(plyr)
+  # return(as.vector(as.data.frame(quintileAllBkt)[, 2]))
+  return(quintileAllBkt)
+}
+
+getPosRate <- function(vct){
+  return(sum(vct, na.rm = T)/length(vct))  
 }
 
 generateTables <- function(coh, iRepeat){
@@ -230,15 +260,24 @@ generateTables <- function(coh, iRepeat){
 #     
 
   # read in the prediction and label of the full data
-  avgCoef <- read.table(paste0(outcomeDir, "av_coefs_Cmp.csv")
-                        , sep=','
-                        , header = T
-                        , stringsAsFactors = F)
   
-  subVarsEnetQuintile <- unlist(lapply(outcomeList, getQuintile
-                                    dir=subVarsCohDir, resp=resp, cohDir=cohDir, 
-                                    EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir,
-                                    subVarsEnetTestAuc=subVarsEnetTestAuc))  
+  
+  subVarsEnetQuintile <- lapply(outcomeList
+                                      ,getQuintile
+                                      ,dir=subVarsCohDir
+                                      ,coh=coh
+                                      ,inFile="_probsAndLabels.csv"
+                                      ,n.bkt=5)  
+  
+  tb4 <- as.data.frame(t(ldply(lapply(subVarsEnetQuintile, function(X)X[, 2]), rbind)))
+  rownames(tb4) <- paste0("Group", 1:nrow(tb4))
+  colnames(tb4) <- outcomeList
+  write.table(tb4
+              , paste0(resultCohDir, 'Table4.csv')
+              , sep=','
+              , row.names=T
+              , col.names = NA
+  )
   
 }
 
