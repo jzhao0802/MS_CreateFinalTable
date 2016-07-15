@@ -4,7 +4,7 @@ library(plyr)
 ENetModelDir <- 
   "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 12.30.14/"
 subVarsENetModelDir <- 
-  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 15.37.41/"
+  "F:/Jie/MS/02_Code/MS_InitModel/Results/2016-07-15 02.33.53/"
 GlmModelDir <- 
   "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 17.39.48/"
 
@@ -27,7 +27,7 @@ dir.create(resultDir, showWarnings = TRUE, recursive = TRUE, mode = "0777")
 
 # calculate the acu confidence interval using formula
 # SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- (AUC)^2 )+(N_2-1)(Q_2-(AUC)^2) )/(N_1 N_2 ))
-getAucCi <- function(outcomeName, dir, resp, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
+getAucCi <- function(outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
 {
   resp <- read.table(paste0(dir, '\\', outcomeName, '\\Cmp_data_for_model.csv')
                      , sep=','
@@ -94,11 +94,11 @@ generateTables <- function(coh, iRepeat){
   
   
   EnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
-                             dir=cohDir, resp=resp, cohDir=cohDir, 
+                             dir=cohDir, cohDir=cohDir, 
                              EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir, 
                              subVarsEnetTestAuc=subVarsEnetTestAuc))
   subVarsEnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
-                                    dir=subVarsCohDir, resp=resp, cohDir=cohDir, 
+                                    dir=subVarsCohDir, cohDir=cohDir, 
                                     EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir,
                                     subVarsEnetTestAuc=subVarsEnetTestAuc))
   GlmAucCi <- (testAuc_glm[3]-testAuc_glm[1])/2
@@ -217,7 +217,28 @@ generateTables <- function(coh, iRepeat){
   }  
   
   
+#   4.	Table type 4: Actual outcomes by quintile of predicted risk score based on EN LR model for top ~10 variables 
+#   a.	Columns:
+#     i.	Quintile group [goes from 1 to 5]
+#     ii.	Outcome 1
+#     iii.	Outcome 2
+#     iv.	Outcome 3
+#     v.	Outcome 4
+#     vi.	Outcome 5
+#     vii.	Outcome 6
+#     viii.	Each cell shows the column % to the nearest 1decimal place. Also put a row at the bottom showing 100% for each column so it is clear that this refers to column percents.
+#     
+
+  # read in the prediction and label of the full data
+  avgCoef <- read.table(paste0(outcomeDir, "av_coefs_Cmp.csv")
+                        , sep=','
+                        , header = T
+                        , stringsAsFactors = F)
   
+  subVarsEnetQuintile <- unlist(lapply(outcomeList, getQuintile
+                                    dir=subVarsCohDir, resp=resp, cohDir=cohDir, 
+                                    EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir,
+                                    subVarsEnetTestAuc=subVarsEnetTestAuc))  
   
 }
 
