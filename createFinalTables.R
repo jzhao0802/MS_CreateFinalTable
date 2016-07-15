@@ -2,11 +2,11 @@ rm(list=ls())
 library(dplyr)
 library(plyr)
 ENetModelDir <- 
-  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 12.30.14/"
+  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 20.48.49/"
 subVarsENetModelDir <- 
   "F:/Jie/MS/02_Code/MS_InitModel/Results/2016-07-15 02.33.53/"
 GlmModelDir <- 
-  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 17.39.48/"
+  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 22.26.06/"
 
 varDescDir <- "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/"
 varDescFile <- "lookup_20160714.csv"
