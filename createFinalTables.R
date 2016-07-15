@@ -69,7 +69,7 @@ getQuintile <- function(outcomeName, dir, coh, inFile, n.bkt){
     } %>%
     summarize_each(., funs(getPosRate(.)), one_of("Label"))
   bktLevels <- sort(levels(bucket))
-  quintileAllBkt <- cbind(bktLevels, quintile[match(bktLevels, quintile$Bucket), -1])
+  quintileAllBkt <- cbind(bktLevels, round(quintile[match(bktLevels, quintile$Bucket), -1], 2))
   library(plyr)
   # return(as.vector(as.data.frame(quintileAllBkt)[, 2]))
   return(quintileAllBkt)
