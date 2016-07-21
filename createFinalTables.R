@@ -151,6 +151,7 @@ generateTables <- function(coh, iRepeat){
                                         , "Relapse or EDSS Progression"
                                         , "Relapse and EDSS Progression"
                                         , "Relapse or confirmed EDSS Progression")
+                            , flag = c('a', 'b', 'c', 'd', 'e', 'f')
                             )
   tb1$Outcome <- lookupTabel$newNm[match(tb1$Outcome, lookupTabel$oldNm)]
   
@@ -223,7 +224,10 @@ generateTables <- function(coh, iRepeat){
                        , 'Average Odds Ratio*')
     
     write.table(tb2
-                , paste0(resultCohDir, 'Table2_'
+                , paste0(resultCohDir
+                         , 'Table3'
+                         , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
+                         , '_'
                          , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
                          , '.csv')
                 , sep=','
@@ -250,26 +254,35 @@ generateTables <- function(coh, iRepeat){
     # orDiff <- coefInf_GLM[, grepl("odds_97.5", names(coefInf_GLM))]-coefInf_GLM[, grepl("odds_2.5", names(coefInf_GLM))]
     
     # orInf <- paste0(coefInf_GLM[, 'odds'], "+/-", orDiff/2)
-    tb3 <- data.frame(Variable=coefInf_GLM[, 1]
-                      , Desc=desc
-                      , OR=coefInf_GLM$odds
-                      , OR_2.5=coefInf_GLM$`odds_2.5%`
-                      , OR_97.5=coefInf_GLM$`odds_97.5%`
-                      , Pvalue=coefInf_GLM$`Pr(>|z|)`)
-    tb3$Pvalue[tb3$Pvalue == 0] = "<0.001"
+#     tb3 <- data.frame(Desc=desc
+#                       , OR=coefInf_GLM$odds
+#                       , OR_2.5=coefInf_GLM$`odds_2.5%`
+#                       , OR_97.5=coefInf_GLM$`odds_97.5%`
+#                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
+    
+    OR_CI <- paste0("[", tb3$OR_2.5, ",", tb3$OR_97.5, "]")
+    tb3 <- data.frame(desc, coefInf_GLM$odds, OR_CI, Pvalue)
+    
+    tb3$Pvalue[tb3$Pvalue < 0.001] = "<0.001"
+    
     colnames(tb3) <- c(
-      "Variable Name",
       "Variable Description",
       "Odds Ratio",
-      "Odds Ratio 2.5%",
-      "Odds Ratio 97.5%",
+      "95% CI for Odds Ratio",
       "P-Value"
     )
     
     write.table(tb3
-                , paste0(resultCohDir, 'Table3_', iOutcome, '.csv')
+                , paste0(resultCohDir
+                         , 'Table4'
+                         , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
+                         , '_'
+                         , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
+                         , '.csv')
                 , sep=','
-                , row.names=F)
+                # , col.names=NA
+                , row.names = F
+    )
     
   }  
   
