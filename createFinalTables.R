@@ -322,14 +322,14 @@ generateTables <- function(coh, iRepeat){
   tb4$Group <- 1:nrow(tb4)
   # rename the outcome names
   colnames(tb4) <- c('Quintile Group'
-                     , lookupTabel$newNm[match(outcomeList, lookupTabel$oldNm)]
+                     , as.character(lookupTabel$newNm[match(outcomeList, lookupTabel$oldNm)])
                      )
     
   write.table(tb4
               , paste0(resultCohDir, 'Table2.csv')
               , sep=','
-              , row.names=T
-              , col.names = NA
+              , row.names=F
+              # , col.names = NA
   )
   
 }
