@@ -2,14 +2,14 @@ rm(list=ls())
 library(dplyr)
 library(plyr)
 ENetModelDir <- 
-  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 20.48.49/"
+  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 04.56.35/"
 subVarsENetModelDir <- 
-  "F:/Jie/MS/02_Code/MS_InitModel/Results/2016-07-15 02.33.53/"
+  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 06.51.18/"
 GlmModelDir <- 
-  "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/2016-07-14 22.26.06/"
+  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 07.32.59/"
 
-varDescDir <- "F:/Lichao/work/Projects/MultipleSclerosis/Results/2016-07-14/"
-varDescFile <- "lookup_20160714.csv"
+varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
+varDescFile <- "lookup_20160720.csv"
 
 outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
                            "relapse_or_prog", "relapse_and_prog", "relapse_or_conf")
