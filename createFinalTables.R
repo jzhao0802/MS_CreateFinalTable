@@ -260,7 +260,9 @@ generateTables <- function(coh, iRepeat){
 #                       , OR_97.5=coefInf_GLM$`odds_97.5%`
 #                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
     
-    OR_CI <- paste0("[", tb3$OR_2.5, ",", tb3$OR_97.5, "]")
+    OR_CI <- paste0("[", coefInf_GLM$`odds_2.5%`
+                    , ",", coefInf_GLM$`odds_97.5%`
+                    , "]")
     tb3 <- data.frame(desc, coefInf_GLM$odds, OR_CI, Pvalue)
     
     tb3$Pvalue[tb3$Pvalue < 0.001] = "<0.001"
