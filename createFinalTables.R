@@ -133,12 +133,33 @@ generateTables <- function(coh, iRepeat){
                                     subVarsEnetTestAuc=subVarsEnetTestAuc))
   GlmAucCi <- (testAuc_glm[3]-testAuc_glm[1])/2
   
-  tb1 <- data.frame(Cohort=EnetTestAuc$Cohort
-                    , Outcome=EnetTestAuc$Outcome
+  tb1 <- data.frame(Outcome=EnetTestAuc$Outcome
                     , Elastic_net=paste0(round(EnetTestAuc$`AUC on test`, 2), '+/-', round(EnetAucCi, 2))
                     , Elastic_net_10_variables=paste0(round(subVarsEnetTestAuc$`AUC on test`, 2), '+/-', round(subVarsEnetAucCi, 2))
                     , Unconstrained_LR=paste0(round(testAuc_glm[, 2], 2), '+/-', round(GlmAucCi[, 1], 2))
                     )
+  # change the names of outcomes
+  lookupTabel <- data.frame(oldNm = c("relapse_fu_any_01"
+                                      , "edssprog"
+                                      , "edssconf3"
+                                      , "relapse_or_prog"
+                                      , "relapse_and_prog"
+                                      , "relapse_or_conf")
+                            , newNm = c("Relapse"
+                                        , "EDSS Progression"
+                                        , "Confirmed EDSS Progression"
+                                        , "Relapse or EDSS Progression"
+                                        , "Relapse and EDSS Progression"
+                                        , "Relapse or confirmed EDSS Progression")
+                            )
+  tb1$Outcome <- lookupTabel$newNm[match(tb1$Outcome, lookupTabel$oldNm)]
+  
+  # change the colnames of tb1
+  names(tb1) <- c("Outcome"
+                  , "Logistic regression with Elastic-Net, extended variable list (+/- 95% CI)"
+                  , "Logistic regression with Elastic-Net, most important ten variables (+/- 95% CI)"
+                  , "Standard logistic regression, most important ten variables (+/- 95% CI)")
+  
   write.table(tb1
               , paste0(resultCohDir, 'Table1.csv')
               , sep=','
