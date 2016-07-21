@@ -170,10 +170,10 @@ generateTables <- function(coh, iRepeat){
     cat(iOutcome, '\n\n')
     outcomeDir <- paste0(cohDir, iOutcome, '\\')
     
-    # 2.	Table type 2: Variable importance for full EN model based on ~80 variables (sorted by descending variable importance)
+    # 2.	Table type 2: Variable importance for full EN model based on ~48 variables (sorted by descending variable importance)
     #   a.	Note there are separate tables for each outcome i.e. Tables 2A-2F.
     #   b.	Columns:
-    #     i.	Variable rank [start at 1 and go to ~80]
+    #     i.	Variable rank [start at 1 and go to ~48]
     #     ii.	Variable description 
     #     iii.	Score 
     #     iv.	Number of times retained 
@@ -215,7 +215,7 @@ generateTables <- function(coh, iRepeat){
     
     
     
-    tb2 <- tb2[1:10, c('Rank', 'Desc', 'Score', 'n_retained', 'Coef', 'OR')]
+    tb2 <- tb2[, c('Rank', 'Desc', 'Score', 'n_retained', 'Coef', 'OR')]
     colnames(tb2) <- c('Rank', 'Variable Description', 'Score', 
                        'Number of Times Retained', 'Average Coefficient', 'Average Odds Ratio')
     
