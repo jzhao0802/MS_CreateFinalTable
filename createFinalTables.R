@@ -291,10 +291,20 @@ generateTables <- function(coh, iRepeat){
                                       ,n.bkt=5)  
   
   tb4 <- as.data.frame(t(ldply(lapply(subVarsEnetQuintile, function(X)X[, 2]), rbind)))
-  rownames(tb4) <- paste0("Group", 1:nrow(tb4))
-  colnames(tb4) <- outcomeList
+#   rownames(tb4) <- paste0("Group", 1:nrow(tb4))
+  # colnames(tb4) <- outcomeList
+  tb4 <- cbind(Group=1:nrow(tb4),tb4)
+  # reverse the order of group number (decreasing)
+  tb4 <- tb4[order(tb4$Group, decreasing = T),]
+  # name back the group number
+  tb4$Group <- 1:nrow(tb4)
+  # rename the outcome names
+  colnames(tb4) <- c('Quintile Group'
+                     , lookupTabel$newNm[match(outcomeList, lookupTabel$oldNm)]
+                     )
+    
   write.table(tb4
-              , paste0(resultCohDir, 'Table4.csv')
+              , paste0(resultCohDir, 'Table2.csv')
               , sep=','
               , row.names=T
               , col.names = NA
