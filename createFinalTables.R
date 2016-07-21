@@ -215,14 +215,18 @@ generateTables <- function(coh, iRepeat){
     
     
     
-    tb2 <- tb2[, c('Rank', 'Desc', 'Score', 'n_retained', 'Coef', 'OR')]
-    colnames(tb2) <- c('Rank', 'Variable Description', 'Score', 
-                       'Number of Times Retained', 'Average Coefficient', 'Average Odds Ratio')
+    tb2 <- tb2[, c('Rank', 'Desc', 'n_retained', 'Coef', 'OR')]
+    colnames(tb2) <- c('Variable Rank(baed on average rank across all models)'
+                       , 'Variable Description' 
+                       , 'Number of Times Variable Retained'
+                       , 'Average Coefficient'
+                       , 'Average Odds Ratio*')
     
     write.table(tb2
                 , paste0(resultCohDir, 'Table2_', iOutcome, '.csv')
                 , sep=','
-                , col.names=NA
+                # , col.names=NA
+                , row.names = F
                 )
     
     #   3.	Table type 3: Odds ratio for unconstrained LR based on most important ~10 variables
