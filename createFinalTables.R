@@ -223,7 +223,9 @@ generateTables <- function(coh, iRepeat){
                        , 'Average Odds Ratio*')
     
     write.table(tb2
-                , paste0(resultCohDir, 'Table2_', iOutcome, '.csv')
+                , paste0(resultCohDir, 'Table2_'
+                         , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
+                         , '.csv')
                 , sep=','
                 # , col.names=NA
                 , row.names = F
