@@ -191,7 +191,7 @@ generateTables <- function(coh, iRepeat){
                           , header = T
                           , stringsAsFactors = F)
     
-    varDesc <- read.table(paste0(varDescDir, varDescFile)
+    varDesc <- read.csv(paste0(varDescDir, varDescFile)
                           , sep=','
                           , header = T
                           , stringsAsFactors = F)
