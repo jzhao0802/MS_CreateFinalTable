@@ -69,7 +69,10 @@ getQuintile <- function(outcomeName, dir, coh, inFile, n.bkt){
     } %>%
     summarize_each(., funs(getPosRate(.)), one_of("Label"))
   bktLevels <- sort(levels(bucket))
-  quintileAllBkt <- cbind(bktLevels, round(quintile[match(bktLevels, quintile$Bucket), -1], 2))
+  quintileAllBkt <- data.frame(bktLevels
+                          , format(
+                            round(quintile[match(bktLevels, quintile$Bucket), -1], 2)
+                            , nsmall = 2))
   library(plyr)
   # return(as.vector(as.data.frame(quintileAllBkt)[, 2]))
   return(quintileAllBkt)
@@ -134,9 +137,15 @@ generateTables <- function(coh, iRepeat){
   GlmAucCi <- (testAuc_glm[3]-testAuc_glm[1])/2
   
   tb1 <- data.frame(Outcome=EnetTestAuc$Outcome
-                    , Elastic_net=paste0(round(EnetTestAuc$`AUC on test`, 2), '+/-', round(EnetAucCi, 2))
-                    , Elastic_net_10_variables=paste0(round(subVarsEnetTestAuc$`AUC on test`, 2), '+/-', round(subVarsEnetAucCi, 2))
-                    , Unconstrained_LR=paste0(round(testAuc_glm[, 2], 2), '+/-', round(GlmAucCi[, 1], 2))
+                    , Elastic_net=paste0(format(round(EnetTestAuc$`AUC on test`, 2), nsmall = 2)
+                                         , '+/-'
+                                         , format(round(EnetAucCi, 2), nsmall = 2))
+                    , Elastic_net_10_variables=paste0(format(round(subVarsEnetTestAuc$`AUC on test`, 2), nsmall = 2)
+                                                      , '+/-'
+                                                      , format(round(subVarsEnetAucCi, 2), nsmall = 2))
+                    , Unconstrained_LR=paste0(format(round(testAuc_glm[, 2], 2), nsmall = 2)
+                                              , '+/-'
+                                              , format(round(GlmAucCi[, 1], 2), nsmall = 2))
                     )
   # change the names of outcomes
   lookupTabel <- data.frame(oldNm = c("relapse_fu_any_01"
@@ -203,9 +212,9 @@ generateTables <- function(coh, iRepeat){
     
     # avgRank <- cbind(vars=rownames(avgRank), avgRank)
     avgCoefRank <- cbind(score=avgRank, Coef=avgCoef[match(rownames(avgRank), rownames(avgCoef)),])
-    avgCoefRank <- round(avgCoefRank[order(avgCoefRank$x),], 3)
+    avgCoefRank <- format(round(avgCoefRank[order(avgCoefRank$x),], 3), nsmall=3)
     rank <- 1:nrow(avgCoefRank)
-    OR <- round(exp(avgCoefRank$Coef),3)
+    OR <- format(round(exp(as.numeric(avgCoefRank$Coef)),3), nsmall = 3)
     desc <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
     coefAllFoldAlpha <- coefAllFoldAlpha[match(rownames(avgRank), rownames(coefAllFoldAlpha)), ]
     n.retained <-apply(apply(coefAllFoldAlpha, 2, function(x)x!=0), 1, sum)
@@ -260,11 +269,11 @@ generateTables <- function(coh, iRepeat){
 #                       , OR_97.5=coefInf_GLM$`odds_97.5%`
 #                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
     
-    OR_CI <- paste0("[", coefInf_GLM$`odds_2.5%`
-                    , ",", coefInf_GLM$`odds_97.5%`
+    OR_CI <- paste0("[", format(round(coefInf_GLM$`odds_2.5%`, 3), nsmall = 3)
+                    , ",", format(round(coefInf_GLM$`odds_97.5%`, 3), nsmall = 3)
                     , "]")
-    tb3 <- data.frame(desc, coefInf_GLM$odds, OR_CI
-                      , Pvalue=coefInf_GLM$`Pr(>|z|)`)
+    tb3 <- data.frame(desc, format(round(coefInf_GLM$odds, 3), nsmall = 3), OR_CI
+                      , Pvalue=format(round(coefInf_GLM$`Pr(>|z|)`, 3), nsmall = 3))
     
     tb3$Pvalue[tb3$Pvalue < 0.001] = "<0.001"
     
