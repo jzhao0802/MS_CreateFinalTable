@@ -244,7 +244,7 @@ generateTables <- function(coh, iRepeat){
                 , row.names = F
                 )
     
-    #   3.	Table type 3: Odds ratio for unconstrained LR based on most important ~10 variables
+    #   3.	Table type 3: Odds ratio for unconstrained LR based on most important 10 variables
     #     a.	One table for each outcome e.g. Table 3A-3F.
     #     b.	Columns:
     #       i.	Variable description 
@@ -259,7 +259,7 @@ generateTables <- function(coh, iRepeat){
                               , check.names =F)[-1, ]
     
     desc <- varDesc[match(coefInf_GLM[, 1], varDesc[, 1]), 2]
-    
+    descOrder <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
     # orDiff <- coefInf_GLM[, grepl("odds_97.5", names(coefInf_GLM))]-coefInf_GLM[, grepl("odds_2.5", names(coefInf_GLM))]
     
     # orInf <- paste0(coefInf_GLM[, 'odds'], "+/-", orDiff/2)
@@ -278,15 +278,15 @@ generateTables <- function(coh, iRepeat){
     tb3$Pvalue <- as.character(tb3$Pvalue)
     tb3$Pvalue[tb3$Pvalue == "0.000"] = "<0.001"
     
-
-    colnames(tb3) <- c(
+    tb3Order <- tb3[match(descOrder[1:10], desc),]
+    colnames(tb3Order) <- c(
       "Variable Description",
       "Odds Ratio",
       "95% CI for Odds Ratio",
       "P-Value"
     )
     
-    write.table(tb3
+    write.table(tb3Order
                 , paste0(resultCohDir
                          , 'Table4'
                          , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
