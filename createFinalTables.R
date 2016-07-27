@@ -2,11 +2,11 @@ rm(list=ls())
 library(dplyr)
 library(plyr)
 ENetModelDir <- 
-  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 04.56.35/"
+  "F:/Jie/MS/03_Result/2016-07-26/2016-07-26 04.15.57/"
 subVarsENetModelDir <- 
-  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 06.51.18/"
+  "F:/Jie/MS/03_Result/2016-07-26/2016-07-26 08.17.58/"
 GlmModelDir <- 
-  "F:/Jie/MS/03_Result/2016-07-21/2016-07-21 07.32.59/"
+  "F:/Jie/MS/03_Result/2016-07-27/2016-07-27 04.16.35/"
 
 varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
 varDescFile <- "lookup_20160720.csv"
@@ -226,7 +226,7 @@ generateTables <- function(coh, iRepeat){
     
     
     tb2 <- tb2[, c('Rank', 'Desc', 'n_retained', 'Coef', 'OR')]
-    colnames(tb2) <- c('Variable Rank(baed on average rank across all models)'
+    colnames(tb2) <- c('Variable Rank (baed on average rank across all models)'
                        , 'Variable Description' 
                        , 'Number of Times Variable Retained'
                        , 'Average Coefficient'
@@ -273,10 +273,12 @@ generateTables <- function(coh, iRepeat){
                     , ",", format(round(coefInf_GLM$`odds_97.5%`, 3), nsmall = 3)
                     , "]")
     tb3 <- data.frame(desc, format(round(coefInf_GLM$odds, 3), nsmall = 3), OR_CI
-                      , Pvalue=format(round(coefInf_GLM$`Pr(>|z|)`, 3), nsmall = 3))
+                      , Pvalue=format(round(coefInf_GLM$`Pr(>|z|)`, 3), nsmall=3))
     
-    tb3$Pvalue[tb3$Pvalue < 0.001] = "<0.001"
+    tb3$Pvalue <- as.character(tb3$Pvalue)
+    tb3$Pvalue[tb3$Pvalue == "0.000"] = "<0.001"
     
+
     colnames(tb3) <- c(
       "Variable Description",
       "Odds Ratio",
