@@ -14,7 +14,7 @@ varDescFile <- "lookup_20160720.csv"
 outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
                            "relapse_or_prog", "relapse_and_prog", "relapse_or_conf")
 
-cohList <- c("Cmp")
+cohList <- c(c("BConti", "B2Fir", "B2B", 'B2Sec'))
 
 n.repeat <- 1
 
