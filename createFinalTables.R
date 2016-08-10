@@ -41,6 +41,13 @@ myTryCatch <- function(expr) {
 
 # calculate the acu confidence interval using formula
 # SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- (AUC)^2 )+(N_2-1)(Q_2-(AUC)^2) )/(N_1 N_2 ))
+getRespPosNum <- function(outcomeName, coh, dir){
+  resp <- read.table(paste0(dir, outcomeName, '\\', coh, '_data_for_model.csv')
+                     , sep=','
+                     , header = T)[, "y"]
+  resp.pos.n <- sum(resp)
+  return(resp.pos.n)
+}
 getAucCi <- function(coh, outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
 {
   resp <- read.table(paste0(dir, outcomeName, '\\', coh, '_data_for_model.csv')
@@ -166,6 +173,9 @@ generateTables <- function(coh, iRepeat){
                                               , '+/-'
                                               , format(round(GlmAucCi[, 1], 2), nsmall = 2))
                     )
+  resp.pos.n <- unlist(lapply(outcomeList, getRespPosNum, dir=cohDir, coh=coh))
+  resp.pos.n <- resp.pos.n[match(tb1$Outcome, outcomeList)]
+  tb1[resp.pos.n < 100, -match('Outcome', names(tb1))] <- NA
   # change the names of outcomes
   lookupTabel <- data.frame(oldNm = c("relapse_fu_any_01"
                                       , "edssprog"
@@ -188,6 +198,7 @@ generateTables <- function(coh, iRepeat){
                   , "Logistic regression with Elastic-Net, extended variable list (+/- 95% CI)"
                   , "Logistic regression with Elastic-Net, most important ten variables (+/- 95% CI)"
                   , "Standard logistic regression, most important ten variables (+/- 95% CI)")
+  
   
   write.table(tb1
               , paste0(resultCohDir, 'Table1.csv')
@@ -250,18 +261,20 @@ generateTables <- function(coh, iRepeat){
                        , 'Number of Times Variable Retained'
                        , 'Average Coefficient'
                        , 'Average Odds Ratio*')
-    
-    write.table(tb2
-                , paste0(resultCohDir
-                         , 'Table3'
-                         , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
-                         , '_'
-                         , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
-                         , '.csv')
-                , sep=','
-                # , col.names=NA
-                , row.names = F
-                )
+    if(resp.pos.n[match(iOutcome, outcomeList)] >= 100){
+      write.table(tb2
+                  , paste0(resultCohDir
+                           , 'Table3'
+                           , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
+                           , '_'
+                           , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
+                           , '.csv')
+                  , sep=','
+                  # , col.names=NA
+                  , row.names = F
+      )
+      
+    }
     
     #   3.	Table type 3: Odds ratio for unconstrained LR based on most important 10 variables
     #     a.	One table for each outcome e.g. Table 3A-3F.
@@ -307,17 +320,21 @@ generateTables <- function(coh, iRepeat){
         "P-Value"
       )
       
-      write.table(tb3Order
-                  , paste0(resultCohDir
-                           , 'Table4'
-                           , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
-                           , '_'
-                           , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
-                           , '.csv')
-                  , sep=','
-                  # , col.names=NA
-                  , row.names = F
-      )
+      if(resp.pos.n[match(iOutcome, outcomeList)] >= 100){
+        write.table(tb3Order
+                    , paste0(resultCohDir
+                             , 'Table4'
+                             , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
+                             , '_'
+                             , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
+                             , '.csv')
+                    , sep=','
+                    # , col.names=NA
+                    , row.names = F
+        )
+        
+      }
+        
     }
     
     
@@ -354,6 +371,10 @@ generateTables <- function(coh, iRepeat){
   tb4 <- tb4[order(tb4$Group, decreasing = T),]
   # name back the group number
   tb4$Group <- 1:nrow(tb4)
+  
+  colnames(tb4) <- c('Group', outcomeList)
+  
+  tb4[, -1][, resp.pos.n < 100] <- NA
   # rename the outcome names
   colnames(tb4) <- c('Quintile Group'
                      , as.character(lookupTabel$newNm[match(outcomeList, lookupTabel$oldNm)])
