@@ -19,6 +19,7 @@ outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
 cohList <- c(c("BConti", "B2Fir", "B2B", 'B2Sec'))
 
 n.repeat <- 1
+BpartOutput <- F
 
 timeStamp <- as.character(Sys.time())
 timeStamp <- gsub(":", ".", timeStamp)  # replace ":" by "."
@@ -201,11 +202,12 @@ generateTables <- function(coh, iRepeat){
   
   
   write.table(tb1
-              , paste0(resultCohDir, 'Table1.csv')
+              , paste0(resultCohDir, 'Table1_old.csv')
               , sep=','
               , row.names=F
                )
-  
+  varsWithoutDescLst <- list()
+  i=1
   for(iOutcome in outcomeList){
     cat(iOutcome, '\n\n')
     outcomeDir <- paste0(cohDir, iOutcome, '\\')
@@ -245,6 +247,10 @@ generateTables <- function(coh, iRepeat){
     avgCoefRank <- format(round(avgCoefRank[order(avgCoefRank$x),], 3), nsmall=3)
     rank <- 1:nrow(avgCoefRank)
     OR <- format(round(exp(as.numeric(avgCoefRank$Coef)),3), nsmall = 3)
+    
+    varsWithoutDesc <- rownames(avgRank)[is.na(match(rownames(avgRank), varDesc[, 1]))] 
+    varsWithoutDescLst[[i]] <- varsWithoutDesc
+    i <- i+1
     desc <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
     coefAllFoldAlpha <- coefAllFoldAlpha[match(rownames(avgRank), rownames(coefAllFoldAlpha)), ]
     n.retained <-apply(apply(coefAllFoldAlpha, 2, function(x)x!=0), 1, sum)
@@ -261,14 +267,14 @@ generateTables <- function(coh, iRepeat){
                        , 'Number of Times Variable Retained'
                        , 'Average Coefficient'
                        , 'Average Odds Ratio*')
-    if(resp.pos.n[match(iOutcome, outcomeList)] >= 100){
+    if(resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
       write.table(tb2
                   , paste0(resultCohDir
                            , 'Table3'
                            , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
                            , '_'
                            , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
-                           , '.csv')
+                           , '_old.csv')
                   , sep=','
                   # , col.names=NA
                   , row.names = F
@@ -320,14 +326,14 @@ generateTables <- function(coh, iRepeat){
         "P-Value"
       )
       
-      if(resp.pos.n[match(iOutcome, outcomeList)] >= 100){
+      if(resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
         write.table(tb3Order
                     , paste0(resultCohDir
                              , 'Table4'
                              , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
                              , '_'
                              , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
-                             , '.csv')
+                             , '_old.csv')
                     , sep=','
                     # , col.names=NA
                     , row.names = F
@@ -336,7 +342,6 @@ generateTables <- function(coh, iRepeat){
       }
         
     }
-    
     
   }  
   
@@ -381,24 +386,31 @@ generateTables <- function(coh, iRepeat){
                      )
     
   write.table(tb4
-              , paste0(resultCohDir, 'Table2.csv')
+              , paste0(resultCohDir, 'Table2_old.csv')
               , sep=','
               , row.names=F
               # , col.names = NA
   )
+  return(varsWithoutDescLst)
   
 }
 
-
+tempLst <- list()
+i=1
 for(iRepeat in 1:n.repeat){
   cat(iRepeat, '\n\n')
   for(coh in cohList){
     cat(coh, '\n\n')
-    generateTables(coh, iRepeat)  
+    tempLst[[i]] <- generateTables(coh, iRepeat)  
+    i <- i+1
   }
   
 }
 
+unique(unlist(lapply(tempLst, function(elm){
+  x <- unique(unlist(elm))
+  return(x)
+})))
 
 
 
