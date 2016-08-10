@@ -1,6 +1,8 @@
 rm(list=ls())
 library(dplyr)
 library(plyr)
+
+options(scipen=999)
 ENetModelDir <- 
   "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 08.19.05\\"
 subVarsENetModelDir <- 
