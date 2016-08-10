@@ -2,11 +2,11 @@ rm(list=ls())
 library(dplyr)
 library(plyr)
 ENetModelDir <- 
-  "F:/Jie/MS/03_Result/2016-08-08/2016-08-08 08.19.05/"
+  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 08.19.05\\"
 subVarsENetModelDir <- 
-  "F:/Jie/MS/03_Result/2016-08-08/2016-08-08 09.24.44/"
+  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 09.24.44\\"
 GlmModelDir <- 
-  "F:/Jie/MS/03_Result/2016-08-09/2016-08-09 06.11.50/"
+  "F:\\Jie\\MS\\03_Result\\2016-08-09\\2016-08-09 06.11.50\\"
 
 varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
 varDescFile <- "lookup_20160720.csv"
@@ -24,12 +24,24 @@ resultDir <- paste("./Results/", timeStamp, "/", sep = '')
 dir.create(resultDir, showWarnings = TRUE, recursive = TRUE, mode = "0777")
 
 
+myTryCatch <- function(expr) {
+  warn <- err <- NULL
+  value <- withCallingHandlers(
+    tryCatch(expr, error=function(e) {
+      err <<- e
+      NULL
+    }), warning=function(w) {
+      warn <<- w
+      invokeRestart("muffleWarning")
+    })
+  list(value=value, warning=warn, error=err)
+}
 
 # calculate the acu confidence interval using formula
 # SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- (AUC)^2 )+(N_2-1)(Q_2-(AUC)^2) )/(N_1 N_2 ))
-getAucCi <- function(outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
+getAucCi <- function(coh, outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
 {
-  resp <- read.table(paste0(dir, '\\', outcomeName, '\\Cmp_data_for_model.csv')
+  resp <- read.table(paste0(dir, outcomeName, '\\', coh, '_data_for_model.csv')
                      , sep=','
                      , header = T)[, "y"]
   n.pos <- sum(resp)
@@ -116,6 +128,10 @@ generateTables <- function(coh, iRepeat){
   names(EnetTestAuc) <- c('Cohort', 'Outcome', 'AUC on test')
   names(subVarsEnetTestAuc) <- c('Cohort', 'Outcome', 'AUC on test')
   
+  
+  EnetTestAuc <- filter(EnetTestAuc, Cohort==coh)
+  subVarsEnetTestAuc <- filter(subVarsEnetTestAuc, Cohort==coh)
+  
   testAuc_glm <- ldply(lapply(outcomeList, function(iOutcome){
     outcomeDir <- paste0(GlmModelDir, coh, '\\', iOutcome, '\\')
     aucCi <- read.table(paste0(outcomeDir, 'ci_auc_glm.csv')
@@ -124,13 +140,14 @@ generateTables <- function(coh, iRepeat){
     return(aucCi)
   }), rbind)
   
+  rownames(testAuc_glm) <- outcomeList
+  testAuc_glm <- testAuc_glm[match(EnetTestAuc$Outcome, outcomeList),]
   
-  
-  EnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
+  EnetAucCi <- unlist(lapply(outcomeList, getAucCi, coh=coh, 
                              dir=cohDir, cohDir=cohDir, 
                              EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir, 
                              subVarsEnetTestAuc=subVarsEnetTestAuc))
-  subVarsEnetAucCi <- unlist(lapply(outcomeList, getAucCi, 
+  subVarsEnetAucCi <- unlist(lapply(outcomeList, getAucCi, coh=coh,
                                     dir=subVarsCohDir, cohDir=cohDir, 
                                     EnetTestAuc=EnetTestAuc, subVarsCohDir=subVarsCohDir,
                                     subVarsEnetTestAuc=subVarsEnetTestAuc))
@@ -190,12 +207,12 @@ generateTables <- function(coh, iRepeat){
     #     v.	Average coefficient 
     #     vi.	Average odds ratio [footnote describing meaning!] 
     
-    avgCoef <- read.table(paste0(outcomeDir, "av_coefs_Cmp.csv")
+    avgCoef <- read.table(paste0(outcomeDir, "av_coefs_", coh, ".csv")
                           , sep=','
                           , header = T
                           , stringsAsFactors = F)
     
-    avgRank <- read.table(paste0(outcomeDir, "av_ranking_Cmp.csv")
+    avgRank <- read.table(paste0(outcomeDir, "av_ranking_", coh, ".csv")
                           , sep=','
                           , header = T
                           , stringsAsFactors = F)
@@ -205,7 +222,7 @@ generateTables <- function(coh, iRepeat){
                           , header = T
                           , stringsAsFactors = F)
     
-    coefAllFoldAlpha <- read.table(paste0(outcomeDir, "coefs_Cmp.csv")
+    coefAllFoldAlpha <- read.table(paste0(outcomeDir, "coefs_", coh, ".csv")
                                    , sep=','
                                    , header = T
                                    , stringsAsFactors = F)
@@ -252,51 +269,55 @@ generateTables <- function(coh, iRepeat){
     #     iii.	95% CI for odds ratio 
     #     iv.	P-value 
     cohDir_glm <- paste0(GlmModelDir, coh, '\\', iOutcome, '\\')
-    coefInf_GLM <- read.table(paste0(cohDir_glm, 'coef_info.csv')
+    coefInf_GLM_lst <- myTryCatch(read.table(paste0(cohDir_glm, 'coef_info.csv')
                               , sep=','
                               , header = T
                               , stringsAsFactors = F
-                              , check.names =F)[-1, ]
+                              , check.names =F)[-1, ])
     
-    desc <- varDesc[match(coefInf_GLM[, 1], varDesc[, 1]), 2]
-    descOrder <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
-    # orDiff <- coefInf_GLM[, grepl("odds_97.5", names(coefInf_GLM))]-coefInf_GLM[, grepl("odds_2.5", names(coefInf_GLM))]
+    if(!is.null(coefInf_GLM_lst$value)){
+      coefInf_GLM <- coefInf_GLM_lst$value
+      desc <- varDesc[match(coefInf_GLM[, 1], varDesc[, 1]), 2]
+      descOrder <- varDesc[match(rownames(avgRank), varDesc[, 1]), 2]
+      # orDiff <- coefInf_GLM[, grepl("odds_97.5", names(coefInf_GLM))]-coefInf_GLM[, grepl("odds_2.5", names(coefInf_GLM))]
+      
+      # orInf <- paste0(coefInf_GLM[, 'odds'], "+/-", orDiff/2)
+      #     tb3 <- data.frame(Desc=desc
+      #                       , OR=coefInf_GLM$odds
+      #                       , OR_2.5=coefInf_GLM$`odds_2.5%`
+      #                       , OR_97.5=coefInf_GLM$`odds_97.5%`
+      #                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
+      
+      OR_CI <- paste0("[", format(round(coefInf_GLM$`odds_2.5%`, 3), nsmall = 3)
+                      , ",", format(round(coefInf_GLM$`odds_97.5%`, 3), nsmall = 3)
+                      , "]")
+      tb3 <- data.frame(desc, format(round(coefInf_GLM$odds, 3), nsmall = 3), OR_CI
+                        , Pvalue=format(round(coefInf_GLM$`Pr(>|z|)`, 3), nsmall=3))
+      
+      tb3$Pvalue <- as.character(tb3$Pvalue)
+      tb3$Pvalue[tb3$Pvalue == "0.000"] = "<0.001"
+      
+      tb3Order <- tb3[match(descOrder[1:10], desc),]
+      colnames(tb3Order) <- c(
+        "Variable Description",
+        "Odds Ratio",
+        "95% CI for Odds Ratio",
+        "P-Value"
+      )
+      
+      write.table(tb3Order
+                  , paste0(resultCohDir
+                           , 'Table4'
+                           , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
+                           , '_'
+                           , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
+                           , '.csv')
+                  , sep=','
+                  # , col.names=NA
+                  , row.names = F
+      )
+    }
     
-    # orInf <- paste0(coefInf_GLM[, 'odds'], "+/-", orDiff/2)
-#     tb3 <- data.frame(Desc=desc
-#                       , OR=coefInf_GLM$odds
-#                       , OR_2.5=coefInf_GLM$`odds_2.5%`
-#                       , OR_97.5=coefInf_GLM$`odds_97.5%`
-#                       , Pvalue=coefInf_GLM$`Pr(>|z|)`)
-    
-    OR_CI <- paste0("[", format(round(coefInf_GLM$`odds_2.5%`, 3), nsmall = 3)
-                    , ",", format(round(coefInf_GLM$`odds_97.5%`, 3), nsmall = 3)
-                    , "]")
-    tb3 <- data.frame(desc, format(round(coefInf_GLM$odds, 3), nsmall = 3), OR_CI
-                      , Pvalue=format(round(coefInf_GLM$`Pr(>|z|)`, 3), nsmall=3))
-    
-    tb3$Pvalue <- as.character(tb3$Pvalue)
-    tb3$Pvalue[tb3$Pvalue == "0.000"] = "<0.001"
-    
-    tb3Order <- tb3[match(descOrder[1:10], desc),]
-    colnames(tb3Order) <- c(
-      "Variable Description",
-      "Odds Ratio",
-      "95% CI for Odds Ratio",
-      "P-Value"
-    )
-    
-    write.table(tb3Order
-                , paste0(resultCohDir
-                         , 'Table4'
-                         , lookupTabel$flag[match(iOutcome, lookupTabel$oldNm)]
-                         , '_'
-                         , lookupTabel$newNm[match(iOutcome, lookupTabel$oldNm)]
-                         , '.csv')
-                , sep=','
-                # , col.names=NA
-                , row.names = F
-    )
     
   }  
   
