@@ -4,11 +4,11 @@ library(plyr)
 
 options(scipen=999)
 ENetModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 08.19.05\\"
+  "F:\\Jie\\MS\\03_Result\\2016-08-11\\2016-08-11 10.54.55\\"
 subVarsENetModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 09.24.44\\"
+  "F:\\Jie\\MS\\03_Result\\2016-08-11\\2016-08-11 11.14.49\\"
 GlmModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-09\\2016-08-09 06.11.50\\"
+  "F:\\Jie\\MS\\03_Result\\2016-08-11\\2016-08-11 11.22.21\\"
 
 varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
 varDescFile <- "lookup_20160810.csv"
@@ -16,7 +16,8 @@ varDescFile <- "lookup_20160810.csv"
 outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
                            "relapse_or_prog", "relapse_and_prog", "relapse_or_conf")
 
-cohList <- c(c("BConti", "B2Fir", "B2B", 'B2Sec'))
+# cohList <- c(c("BConti", "B2Fir", "B2B", 'B2Sec'))
+cohList <- c("B2B")
 
 n.repeat <- 1
 BpartOutput <- F
