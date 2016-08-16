@@ -42,12 +42,14 @@ myTryCatch <- function(expr) {
 
 # calculate the acu confidence interval using formula
 # SE (AUC)= √((AUC ( 1-AUC)+(N_1-1)  (Q_1- (AUC)^2 )+(N_2-1)(Q_2-(AUC)^2) )/(N_1 N_2 ))
-getRespPosNum <- function(outcomeName, coh, dir){
+getCohortNumAndRespPosNum <- function(outcomeName, coh, dir){
   resp <- read.table(paste0(dir, outcomeName, '\\', coh, '_data_for_model.csv')
                      , sep=','
                      , header = T)[, "y"]
+  n <- length(resp)
   resp.pos.n <- sum(resp)
-  return(resp.pos.n)
+  num_summary <- c(n, resp.pos.n)
+  return(num_summary)
 }
 getAucCi <- function(coh, outcomeName, dir, cohDir, EnetTestAuc, subVarsCohDir, subVarsEnetTestAuc)
 {
@@ -163,7 +165,12 @@ generateTables <- function(coh, iRepeat){
                                     subVarsEnetTestAuc=subVarsEnetTestAuc))
   GlmAucCi <- (testAuc_glm[3]-testAuc_glm[1])/2
   
+  num_summary <- ldply(lapply(outcomeList, getCohortNumAndRespPosNum, dir=cohDir, coh=coh), quickdf)
+  num_summary <- num_summary[match(EnetTestAuc$Outcome, outcomeList), ]
+  names(num_summary) <- c("n.cohort","resp.pos.n")
   tb1 <- data.frame(Outcome=EnetTestAuc$Outcome
+                    , n=num_summary[, 1]
+                    , resp.pos.n=num_summary[, 2]
                     , Elastic_net=paste0(format(round(EnetTestAuc$`AUC on test`, 2), nsmall = 2)
                                          , '+/-'
                                          , format(round(EnetAucCi, 2), nsmall = 2))
@@ -174,9 +181,7 @@ generateTables <- function(coh, iRepeat){
                                               , '+/-'
                                               , format(round(GlmAucCi[, 1], 2), nsmall = 2))
                     )
-  resp.pos.n <- unlist(lapply(outcomeList, getRespPosNum, dir=cohDir, coh=coh))
-  resp.pos.n <- resp.pos.n[match(tb1$Outcome, outcomeList)]
-  tb1[resp.pos.n < 100, -match('Outcome', names(tb1))] <- NA
+  tb1[tb1$resp.pos.n < 100, -match(c('Outcome', 'n', 'resp.pos.n'), names(tb1))] <- NA
   # change the names of outcomes
   lookupTabel <- data.frame(oldNm = c("relapse_fu_any_01"
                                       , "edssprog"
@@ -196,6 +201,8 @@ generateTables <- function(coh, iRepeat){
   
   # change the colnames of tb1
   names(tb1) <- c("Outcome"
+                  , "Number of Patients in This Cohort"
+                  , "Number of Patients with Positive Outcome"
                   , "Logistic regression with Elastic-Net, extended variable list (+/- 95% CI)"
                   , "Logistic regression with Elastic-Net, most important ten variables (+/- 95% CI)"
                   , "Standard logistic regression, most important ten variables (+/- 95% CI)")
@@ -267,7 +274,7 @@ generateTables <- function(coh, iRepeat){
                        , 'Number of Times Variable Retained'
                        , 'Average Coefficient'
                        , 'Average Odds Ratio*')
-    if(resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
+    if(num_summary$resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
       write.table(tb2
                   , paste0(resultCohDir
                            , 'Table3'
@@ -326,7 +333,7 @@ generateTables <- function(coh, iRepeat){
         "P-Value"
       )
       
-      if(resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
+      if(num_summary$resp.pos.n[match(iOutcome, outcomeList)] >= 100 | BpartOutput==F){
         write.table(tb3Order
                     , paste0(resultCohDir
                              , 'Table4'
@@ -379,7 +386,7 @@ generateTables <- function(coh, iRepeat){
   
   colnames(tb4) <- c('Group', outcomeList)
   
-  tb4[, -1][, resp.pos.n < 100] <- NA
+  tb4[, -1][, num_summary$resp.pos.n < 100] <- NA
   # rename the outcome names
   colnames(tb4) <- c('Quintile Group'
                      , as.character(lookupTabel$newNm[match(outcomeList, lookupTabel$oldNm)])
