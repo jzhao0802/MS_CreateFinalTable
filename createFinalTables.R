@@ -11,12 +11,12 @@ GlmModelDir <-
   "F:\\Jie\\MS\\03_Result\\2016-08-09\\2016-08-09 06.11.50\\"
 
 varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
-varDescFile <- "lookup_20160810.csv"
+varDescFile <- "lookup_20160816.csv"
 
 outcomeList <- c("relapse_fu_any_01", "edssprog", "edssconf3",
                            "relapse_or_prog", "relapse_and_prog", "relapse_or_conf")
 
-cohList <- c(c("BConti", "B2Fir", "B2B", 'B2Sec'))
+cohList <- c(c("BConti", "B2Fir", 'B2Sec'))
 
 n.repeat <- 1
 BpartOutput <- F
@@ -262,7 +262,7 @@ generateTables <- function(coh, iRepeat){
     
     
     tb2 <- tb2[, c('Rank', 'Desc', 'n_retained', 'Coef', 'OR')]
-    colnames(tb2) <- c('Variable Rank (baed on average rank across all models)'
+    colnames(tb2) <- c('Variable Rank (based on average rank across all models)'
                        , 'Variable Description' 
                        , 'Number of Times Variable Retained'
                        , 'Average Coefficient'
