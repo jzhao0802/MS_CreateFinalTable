@@ -4,11 +4,11 @@ library(plyr)
 
 options(scipen=999)
 ENetModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 08.19.05\\"
+  "F:/Jie/MS/03_Result/2016-07-26/2016-07-26 04.15.57/"
 subVarsENetModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-08\\2016-08-08 09.24.44\\"
+  "F:/Jie/MS/03_Result/2016-07-26/2016-07-26 08.17.58/"
 GlmModelDir <- 
-  "F:\\Jie\\MS\\03_Result\\2016-08-09\\2016-08-09 06.11.50\\"
+  "F:/Jie/MS/03_Result/2016-07-27/2016-07-27 04.16.35/"
 
 varDescDir <- "F:/Jie/MS/01_Data/ModelData/data4Model/"
 varDescFile <- "lookup_20160816.csv"
